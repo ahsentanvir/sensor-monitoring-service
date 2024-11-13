@@ -1,0 +1,18 @@
+services:
+  rabbitmq:
+    image: rabbitmq:4.0-management
+    container_name: rabbitmq
+    network_mode: host
+
+  sensor-monitoring-service:
+    image: sensor-monitoring-service
+    container_name: sensor-monitoring-service
+    network_mode: host
+    depends_on:
+      - rabbitmq
+
+  netcat-service:
+    image: alpine:latest
+    container_name: netcat-service
+    command: [ "sh", "-c", "apk add --no-cache netcat-openbsd && tail -f /dev/null" ]
+    network_mode: host
