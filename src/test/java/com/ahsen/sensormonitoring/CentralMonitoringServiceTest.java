@@ -41,7 +41,7 @@ public class CentralMonitoringServiceTest {
 
         // Assert that central monitoring service receives the temp reading
         Assertions.assertNotNull(output);
-        Assertions.assertTrue(output.getOut().contains("Temperature SensorReading:"));
+        Assertions.assertTrue(output.getOut().contains("TEMPERATURE SensorReading:"));
     }
 
     @Test
@@ -54,7 +54,7 @@ public class CentralMonitoringServiceTest {
 
         // Assert that central monitoring service receives the humidity reading
         Assertions.assertNotNull(output);
-        Assertions.assertTrue(output.getOut().contains("Humidity SensorReading:"));
+        Assertions.assertTrue(output.getOut().contains("HUMIDITY SensorReading:"));
     }
 
     @Test
@@ -83,5 +83,18 @@ public class CentralMonitoringServiceTest {
         // when the humidity is more than threshold
         Assertions.assertNotNull(output);
         Assertions.assertTrue(output.getOut().contains("HUMIDITY THRESHOLD EXCEEDED"));
+    }
+
+    @Test
+    public void testThrowExceptionOnBogusReading(CapturedOutput output) throws InterruptedException {
+        // Send a bogus reading to queue
+        String humidityReading = "sensor_id=h1; value=hey";
+        rabbitTemplate.convertAndSend(MonitoringUtils.humidityQueueName, humidityReading);
+
+        Thread.sleep(2000L);
+
+        // Assert that central monitoring service contains exception logs
+        Assertions.assertNotNull(output);
+        Assertions.assertTrue(output.getErr().contains("Exception while monitoring"));
     }
 }

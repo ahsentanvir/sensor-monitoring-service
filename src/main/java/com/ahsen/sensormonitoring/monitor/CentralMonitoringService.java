@@ -1,10 +1,9 @@
 package com.ahsen.sensormonitoring.monitor;
 
-import com.ahsen.sensormonitoring.dto.SensorReading;
-import com.ahsen.sensormonitoring.dto.SensorType;
-import com.ahsen.sensormonitoring.util.MonitoringUtils;
+import com.ahsen.sensormonitoring.monitor.monitors.HumidityMonitor;
+import com.ahsen.sensormonitoring.monitor.monitors.TemperatureMonitor;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
 
@@ -12,38 +11,20 @@ import org.springframework.stereotype.Component;
 @DependsOn({"producerService"})
 public class CentralMonitoringService {
 
-    @Value("${temperatureThreshold:35}")
-    private Integer temperatureThreshold;
+    @Autowired
+    private TemperatureMonitor temperatureMonitor;
 
-    @Value("${humidityThreshold:50}")
-    private Integer humidityThreshold;
+    @Autowired
+    private HumidityMonitor humidityMonitor;
 
     @RabbitListener(queues = "temperature.readings")
     public void consumeTempReading(String message) {
-        System.out.println("Received temperature reading(string): " + message);
-        try {
-            SensorReading sensorReading = MonitoringUtils.parseReading(SensorType.TEMPERATURE, message);
-            System.out.println("Temperature SensorReading: " + sensorReading.toString());
-            if (sensorReading.getValue() > temperatureThreshold) {
-                System.out.println("WARNING ---> TEMPERATURE THRESHOLD EXCEEDED!!!!!!! ITS VALUE IS " + sensorReading.getValue() + "*C for sensorId: " + sensorReading.getSensorId());
-            }
-        } catch (Exception e) {
-            System.err.println("Exception while parsing temperature reading - " + e);
-        }
+        temperatureMonitor.monitorAndRaisedAlarmIfThresholdReached(message);
     }
 
     @RabbitListener(queues = "humidity.readings")
     public void consumeHumidityReading(String message) {
-        System.out.println("Received humidity reading(string): " + message);
-        try {
-            SensorReading sensorReading = MonitoringUtils.parseReading(SensorType.HUMIDITY, message);
-            System.out.println("Humidity SensorReading: " + sensorReading.toString());
-            if (sensorReading.getValue() > humidityThreshold) {
-                System.out.println("WARNING ---> HUMIDITY THRESHOLD EXCEEDED!!!!!!!!!! ITS VALUE IS " + sensorReading.getValue() + "% for sensorId: " + sensorReading.getSensorId());
-            }
-        } catch (Exception e) {
-            System.err.println("Exception while parsing humidity reading - " + e);
-        }
+        humidityMonitor.monitorAndRaisedAlarmIfThresholdReached(message);
     }
 
 }

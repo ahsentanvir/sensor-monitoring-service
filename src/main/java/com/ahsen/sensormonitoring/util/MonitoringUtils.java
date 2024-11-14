@@ -32,4 +32,25 @@ public class MonitoringUtils {
         return SensorReading.builder().sensorId(sensorId).value(value).sensorType(sensorType).build();
     }
 
+    public static void monitorAndRaisedAlarmIfThresholdReached(SensorType type, String reading, Integer threshold) {
+        System.out.println("Received " + type + " reading(string): " + reading);
+        try {
+            SensorReading sensorReading = SensorReading.builder().build();
+            if (SensorType.TEMPERATURE.equals(type)) {
+                sensorReading = MonitoringUtils.parseReading(SensorType.TEMPERATURE, reading);
+            } else if (SensorType.HUMIDITY.equals(type)) {
+                sensorReading = MonitoringUtils.parseReading(SensorType.HUMIDITY, reading);
+            }
+
+            System.out.println(type + " SensorReading: " + sensorReading.toString());
+            if (SensorType.TEMPERATURE.equals(type) && sensorReading.getValue() > threshold) {
+                System.out.println("WARNING ---> TEMPERATURE THRESHOLD EXCEEDED!!!!!!! ITS VALUE IS " + sensorReading.getValue() + "*C for sensorId: " + sensorReading.getSensorId());
+            } else if (SensorType.HUMIDITY.equals(type) && sensorReading.getValue() > threshold) {
+                System.out.println("WARNING ---> HUMIDITY THRESHOLD EXCEEDED!!!!!!! ITS VALUE IS " + sensorReading.getValue() + "% for sensorId: " + sensorReading.getSensorId());
+            }
+        } catch (Exception e) {
+            System.err.println("Exception while monitoring - " + e);
+        }
+    }
+
 }
