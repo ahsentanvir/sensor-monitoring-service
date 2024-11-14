@@ -14,7 +14,7 @@ public class ProducerService {
         this.rabbitTemplate = rabbitTemplate;
     }
 
-    public void sendMessage(String queueName, String data) throws InterruptedException {
+    public void sendMessage(String queueName, String data) {
         System.out.println("Sending message: " + data + " to queueName: " + queueName);
         rabbitTemplate.convertAndSend(queueName, data);
     }
